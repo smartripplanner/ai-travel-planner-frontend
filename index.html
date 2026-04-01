@@ -41,13 +41,14 @@
     <div class="nav-logo">✈ TravelAI</div>
     <div class="nav-links">
         <button class="btn-outline btn-sm theme-toggle-btn" onclick="toggleTheme()" style="padding: 8px 16px; border-radius: 50px;">
-            <span class="light-icon">☀️ Light Mode</span><span class="dark-icon">🌙 Dark Mode</span>
+            <span class="light-icon">☀️</span><span class="dark-icon">🌙</span>
         </button>
         <a href="#features">Features</a>
-        
-        <a href="dashboard.html" id="navDashboard" style="display: none; font-weight: 500; color: var(--gold);">My Dashboard</a>
+        <a href="blog.html">Blog</a>
+        <a href="dashboard.html" id="navDashboard" style="display: none; font-weight: 500; color: var(--gold);">Dashboard</a>
+        <a href="profile.html" id="navProfile" style="display: none; font-weight: 500; color: var(--gold);">Profile</a>
+        <a href="admin.html" id="navAdmin" style="display: none; font-size: 12px; color: rgba(var(--white-rgb),0.5);">Admin</a>
         <button class="btn-outline btn-sm" id="authBtn">Sign In</button>
-        
         <a href="form.html" class="nav-cta">Plan My Trip</a>
     </div>
 </nav>
@@ -216,16 +217,23 @@ const authBtn = document.getElementById('authBtn');
 const navDashboard = document.getElementById('navDashboard');
 let currentUser = null;
 
-// Listen for Login State
+const ADMIN_EMAILS = ["shubhambhatt2004@gmail.com"]; // update with your admin email
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
-        authBtn.textContent = "Sign Out";
+        authBtn.textContent = `Sign Out (${(user.displayName||'User').split(' ')[0]})`;
         navDashboard.style.display = "inline-block";
+        document.getElementById('navProfile').style.display = "inline-block";
+        if (ADMIN_EMAILS.includes(user.email)) {
+            document.getElementById('navAdmin').style.display = "inline-block";
+        }
     } else {
         currentUser = null;
         authBtn.textContent = "Sign In";
         navDashboard.style.display = "none";
+        document.getElementById('navProfile').style.display = "none";
+        document.getElementById('navAdmin').style.display = "none";
     }
 });
 

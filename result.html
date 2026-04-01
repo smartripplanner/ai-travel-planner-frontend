@@ -261,6 +261,34 @@
 </head>
 <body class="result-body">
 
+<!-- ── MAP FULLSCREEN MODAL ── -->
+<div id="mapFullscreenModal" class="map-fullscreen-modal" style="display:none;" data-html2canvas-ignore>
+    <div class="map-modal-inner">
+        <div class="map-modal-header">
+            <div>
+                <h3 id="mapModalTitle" style="font-family:var(--font-serif);font-size:22px;color:var(--gold);margin:0 0 4px;">Day Route</h3>
+                <div id="mapModalMeta" style="font-size:13px;color:rgba(var(--white-rgb),0.5);"></div>
+            </div>
+            <button class="btn-outline btn-sm" onclick="closeMapModal()" style="flex-shrink:0;">✕ Close</button>
+        </div>
+        <div id="mapModalMap" style="width:100%;height:calc(100vh - 120px);border-radius:12px;overflow:hidden;"></div>
+    </div>
+</div>
+
+<!-- ── USAGE LIMIT POPUP ── -->
+<div id="usageLimitPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;backdrop-filter:blur(8px);align-items:center;justify-content:center;" data-html2canvas-ignore>
+    <div style="background:var(--dark2);border:1px solid rgba(212,167,106,0.3);border-radius:var(--radius-lg);padding:48px 40px;text-align:center;max-width:420px;width:90%;box-shadow:var(--shadow);">
+        <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+        <h2 style="font-family:var(--font-serif);font-size:28px;font-weight:300;color:var(--white);margin-bottom:12px;">Daily Limit Reached</h2>
+        <p style="font-size:14px;color:rgba(var(--white-rgb),0.6);line-height:1.6;margin-bottom:28px;" id="usageLimitMsg">You've used all your free itineraries for today. Sign in or upgrade to continue.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn-primary" onclick="document.getElementById('usageLimitPopup').style.display='none';document.getElementById('authBtn').click()">Sign In for More ✨</button>
+            <a href="profile.html#upgrade"><button class="btn-outline">Upgrade Plan 👑</button></a>
+            <button class="btn-outline" onclick="document.getElementById('usageLimitPopup').style.display='none'">Maybe Later</button>
+        </div>
+    </div>
+</div>
+
 <div class="chatbot-fab" data-html2canvas-ignore>
     <div class="chatbot-window" id="chatbotWindow">
         <div class="chatbot-header">
@@ -282,15 +310,17 @@
     <a href="index.html" class="nav-logo">✈ TravelAI</a>
     <div class="result-nav-actions">
         <button class="btn-outline btn-sm theme-toggle-btn" onclick="toggleTheme()">
-            <span class="light-icon">☀️ Light Mode</span><span class="dark-icon">🌙 Dark Mode</span>
+            <span class="light-icon">☀️</span><span class="dark-icon">🌙</span>
         </button>
         <button class="btn-outline btn-sm" onclick="exportToPDF()" id="pdfBtn">📥 PDF</button>
-        <a href="form.html"><button class="btn-outline btn-sm">New Trip</button></a>
-        <a href="dashboard.html" id="navDashboard" style="display: none; font-weight: 500; color: var(--gold); margin-right: 10px;">Dashboard</a>
+        <a href="form.html"><button class="btn-outline btn-sm">✨ New Trip</button></a>
+        <a href="blog.html" style="font-size:13px;color:rgba(var(--white-rgb),0.6);" class="nav-text-link">Blog</a>
+        <a href="dashboard.html" id="navDashboard" style="display:none;" class="nav-text-link">Dashboard</a>
+        <a href="profile.html" id="navProfile" style="display:none;" class="nav-text-link">Profile</a>
         <button class="btn-outline btn-sm" id="authBtn">Sign In</button>
-        <div style="position: relative; display: inline-block;">
-            <button class="btn-primary btn-sm" id="saveTripBtn" style="display:none; transition: all 0.3s;">Save Trip 💾</button>
-            <button class="btn-outline btn-sm" id="shareTripBtn" style="display:none; position: absolute; top: 45px; right: 0; width: 140px; background: var(--dark2);">🔗 Copy Share Link</button>
+        <div style="position:relative;display:inline-block;">
+            <button class="btn-primary btn-sm" id="saveTripBtn" style="display:none;">Save Trip 💾</button>
+            <button class="btn-outline btn-sm" id="shareTripBtn" style="display:none;position:absolute;top:45px;right:0;width:150px;background:var(--dark2);white-space:nowrap;">🔗 Copy Share Link</button>
         </div>
     </div>
 </nav>
@@ -319,24 +349,25 @@
 
     <div class="section-block" id="weatherSection" style="display:none; padding-top: 40px; padding-bottom: 20px;">
         <div class="section-title-row" style="margin-bottom: 20px;">
-            <h2 style="font-size: 24px;">🌤️ Live Weather Forecast</h2>
-            <div class="section-sub">Upcoming 5-day weather for <span id="weatherDestName" style="color:var(--gold)"></span></div>
+            <h2 style="font-size: 24px;">🌤️ Weather for Your Travel Dates</h2>
+            <div class="section-sub">Forecast for <span id="weatherDestName" style="color:var(--gold)"></span> <span id="weatherDateRange" style="color:rgba(var(--white-rgb),0.5);font-size:12px;"></span></div>
         </div>
-        <div class="weather-grid" id="weatherGrid" style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px;"></div>
+        <div class="weather-grid" id="weatherGrid" style="display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; flex-wrap: nowrap;"></div>
+        <div id="weatherNotice" style="display:none;margin-top:12px;font-size:12px;color:rgba(var(--white-rgb),0.4);font-style:italic;">* Forecast shown for nearest available dates. Open-Meteo provides up to 16 days ahead.</div>
     </div>
 
     <div class="section-block" id="flightSection" style="display:none">
         <div class="section-title-row">
             <h2>✈️ Estimated Flights</h2>
-            <div class="section-sub">Realistic estimates. Check exact live prices on Skyscanner.</div>
+            <div class="section-sub">3 curated options — cheapest, fastest &amp; best value. Verify live prices on Skyscanner.</div>
         </div>
         <div class="flights-grid" id="flightsGrid"></div>
     </div>
 
     <div class="section-block" id="hotelSection" style="display:none">
         <div class="section-title-row">
-            <h2>🏨 Hotel Recommendations</h2>
-            <div class="section-sub">Top properties based on your travel style.</div>
+            <h2>🏨 Hotel Options</h2>
+            <div class="section-sub">Budget · Mid-Range · Luxury — pick what suits your style.</div>
         </div>
         <div class="hotel-grid" id="hotelsGrid"></div>
     </div>
@@ -526,13 +557,13 @@ window.toggleTheme = function() {
     }
 }
 
-// ── PDF EXPORT — Clean template-based (mirrors email design) ──
+// ── PDF EXPORT — Uses email template design ──
 window.exportToPDF = function() {
     const btn = document.getElementById('pdfBtn');
     btn.textContent = "⏳ Generating...";
     btn.disabled = true;
 
-    const tripStyle = style.charAt(0).toUpperCase() + style.slice(1);
+    const tripStyle = (style || 'budget').charAt(0).toUpperCase() + (style || 'budget').slice(1);
     const estCost = tripData ? tripData.totalEstimatedCost : ('₹' + parseInt(budget).toLocaleString('en-IN'));
 
     // ── Build day cards (same design as email template) ──
@@ -649,38 +680,37 @@ window.exportToPDF = function() {
       </div>
     </div>`;
 
-    // Inject into hidden off-screen container
-    const container = document.createElement('div');
-    container.innerHTML = htmlContent;
-    container.style.cssText = 'position:fixed;top:-99999px;left:0;z-index:-1;width:900px;background:#0a0f1a;';
-    document.body.appendChild(container);
-
+    // ── Use from(htmlString) — most reliable approach, no off-screen positioning issues ──
     const opt = {
-        margin: [0.35, 0.3, 0.35, 0.3],
+        margin: [0.4, 0.35, 0.4, 0.35],
         filename: `TravelAI_${destination}_${days}Days.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: {
             scale: 2,
             useCORS: true,
-            scrollY: 0,
-            windowWidth: 900,
+            allowTaint: true,
             backgroundColor: '#0a0f1a',
             logging: false,
-            allowTaint: true
+            letterRendering: true
         },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css'] }
+        pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page-break', avoid: '.pdf-no-break' }
     };
 
-    html2pdf().set(opt).from(container).save().then(() => {
-        document.body.removeChild(container);
-        btn.textContent = "📥 PDF";
-        btn.disabled = false;
-    }).catch(() => {
-        if (document.body.contains(container)) document.body.removeChild(container);
-        btn.textContent = "📥 PDF";
-        btn.disabled = false;
-    });
+    html2pdf()
+        .set(opt)
+        .from(htmlContent)
+        .save()
+        .then(() => {
+            btn.textContent = "📥 PDF";
+            btn.disabled = false;
+        })
+        .catch(err => {
+            console.error("PDF Error:", err);
+            btn.textContent = "📥 PDF";
+            btn.disabled = false;
+            alert("PDF generation failed. Please try again.");
+        });
 }
 
 // ── LOAD LOCAL DATA ──
@@ -744,17 +774,22 @@ let savedTripId = null;
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
-        authBtn.textContent = `Sign Out (${user.displayName.split(" ")[0]})`;
-        navDashboard.style.display = "inline-block";
+        const firstName = (user.displayName || 'User').split(' ')[0];
+        authBtn.textContent = `Sign Out (${firstName})`;
+        navDashboard.style.display = 'inline-block';
+        const navProfile = document.getElementById('navProfile');
+        if (navProfile) navProfile.style.display = 'inline-block';
         const dashBtn = document.getElementById('dashboardBtnBottom');
-        if(dashBtn) dashBtn.style.display = 'inline-flex';
-        if(!savedTripId) saveTripBtn.style.display = "inline-flex";
+        if (dashBtn) dashBtn.style.display = 'inline-flex';
+        if (!savedTripId) saveTripBtn.style.display = 'inline-flex';
     } else {
         currentUser = null;
-        authBtn.textContent = "Sign In";
-        navDashboard.style.display = "none";
-        saveTripBtn.style.display = "none";
-        shareTripBtn.style.display = "none";
+        authBtn.textContent = 'Sign In';
+        navDashboard.style.display = 'none';
+        const navProfile = document.getElementById('navProfile');
+        if (navProfile) navProfile.style.display = 'none';
+        saveTripBtn.style.display = 'none';
+        shareTripBtn.style.display = 'none';
     }
 });
 
@@ -801,7 +836,7 @@ fetchRealImage(`${destination} landmark wide landscape`, destination, 'place').t
     hero.style.backgroundSize = "cover"; hero.style.backgroundPosition = "center";
 });
 
-// ── WEATHER ──
+// ── WEATHER — Shows weather for actual travel dates ──
 async function loadWeather() {
     try {
         const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&format=json`);
@@ -809,86 +844,156 @@ async function loadWeather() {
         if (!geoData.results?.length) return;
         const { latitude, longitude, name } = geoData.results[0];
         document.getElementById('weatherDestName').textContent = name;
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
-        const weatherData = await weatherRes.json();
-        if (weatherData.daily) {
-            document.getElementById('weatherSection').style.display = 'block';
-            const wg = document.getElementById('weatherGrid');
-            const wmoCodes = { 0:"☀️ Clear",1:"🌤️ Mostly Clear",2:"⛅ Partly Cloudy",3:"☁️ Overcast",45:"🌫️ Fog",48:"🌫️ Fog",51:"🌧️ Drizzle",61:"🌧️ Rain",65:"🌧️ Heavy Rain",71:"❄️ Snow",95:"🌩️ Thunderstorm" };
-            for(let i=0; i<Math.min(5, weatherData.daily.time.length); i++) {
-                const dateObj = new Date(weatherData.daily.time[i]);
-                const date = dateObj.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
-                const max = Math.round(weatherData.daily.temperature_2m_max[i]);
-                const min = Math.round(weatherData.daily.temperature_2m_min[i]);
-                const code = weatherData.daily.weathercode[i];
-                const condition = wmoCodes[code] || "☁️ Cloudy";
-                const emoji = condition.split(' ')[0];
-                const text = condition.substring(2);
-                wg.innerHTML += `
-                <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;min-width:140px;text-align:center;flex-shrink:0;">
-                    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">${date}</div>
-                    <div style="font-size:28px;margin-bottom:8px;">${emoji}</div>
-                    <div style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:8px;">${text}</div>
-                    <div style="font-size:13px;color:var(--gold);font-weight:500;">H: ${max}°C <span style="color:rgba(255,255,255,0.4);margin-left:6px;">L: ${min}°C</span></div>
-                </div>`;
-            }
+
+        // Open-Meteo forecast range: today + 16 days
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxForecastDate = new Date(today);
+        maxForecastDate.setDate(today.getDate() + 15);
+
+        const travelStart = new Date(travelDateStr + 'T00:00:00');
+        const travelEnd   = new Date(returnDateStr  + 'T00:00:00');
+
+        // Determine which date range we can actually fetch
+        let fetchStart = travelStart >= today ? travelStart : today;
+        let fetchEnd   = travelEnd <= maxForecastDate ? travelEnd : maxForecastDate;
+
+        let isFallback = false;
+        if (fetchStart > maxForecastDate) {
+            // Trip is too far in the future — show next 5 days as preview
+            fetchStart = today;
+            fetchEnd   = new Date(today);
+            fetchEnd.setDate(today.getDate() + Math.min(days - 1, 4));
+            isFallback = true;
         }
-    } catch(e) {}
+
+        const startStr = fetchStart.toISOString().split('T')[0];
+        const endStr   = fetchEnd.toISOString().split('T')[0];
+
+        // Update the subtitle
+        const rangeEl = document.getElementById('weatherDateRange');
+        if (rangeEl) rangeEl.textContent = isFallback ? `(showing preview — trip is ${Math.round((travelStart - today) / 86400000)} days away)` : `(${startStr} → ${endStr})`;
+        if (isFallback) { const n = document.getElementById('weatherNotice'); if(n) n.style.display = 'block'; }
+
+        const weatherRes = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+            `&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto` +
+            `&start_date=${startStr}&end_date=${endStr}`
+        );
+        const weatherData = await weatherRes.json();
+
+        if (!weatherData.daily?.time?.length) return;
+
+        document.getElementById('weatherSection').style.display = 'block';
+        const wg = document.getElementById('weatherGrid');
+        wg.innerHTML = '';
+
+        const wmoCodes = {
+            0:"☀️ Clear", 1:"🌤️ Mostly Clear", 2:"⛅ Partly Cloudy", 3:"☁️ Overcast",
+            45:"🌫️ Foggy", 48:"🌫️ Icy Fog", 51:"🌦️ Light Drizzle", 53:"🌧️ Drizzle",
+            61:"🌧️ Light Rain", 63:"🌧️ Moderate Rain", 65:"🌧️ Heavy Rain",
+            71:"❄️ Light Snow", 73:"❄️ Snow", 80:"🌦️ Showers", 95:"🌩️ Thunderstorm"
+        };
+
+        weatherData.daily.time.forEach((dateStr, i) => {
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const dateDisplay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const max  = Math.round(weatherData.daily.temperature_2m_max[i]);
+            const min  = Math.round(weatherData.daily.temperature_2m_min[i]);
+            const code = weatherData.daily.weathercode[i];
+            const condition = wmoCodes[code] || "☁️ Cloudy";
+            const [emoji, ...textParts] = condition.split(' ');
+            const text = textParts.join(' ');
+
+            wg.innerHTML += `
+            <div class="weather-card">
+                <div class="wc-day">${dayName}</div>
+                <div class="wc-date">${dateDisplay}</div>
+                <div class="wc-icon">${emoji}</div>
+                <div class="wc-desc">${text}</div>
+                <div class="wc-temps">
+                    <span class="wc-high">↑${max}°</span>
+                    <span class="wc-low">↓${min}°</span>
+                </div>
+            </div>`;
+        });
+    } catch(e) { console.warn("Weather load failed:", e); }
 }
 
-// ── FLIGHT RENDER ──
+// ── FLIGHT RENDER — 3 options with category labels ──
 if (showFlight && tripData?.flights) {
     document.getElementById("flightSection").style.display = "block";
     const fg = document.getElementById("flightsGrid");
+    const flightCategoryColors = {
+        cheapest:   { bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.25)',  badge: '#10b981' },
+        fastest:    { bg: 'rgba(59,130,246,0.08)',   border: 'rgba(59,130,246,0.25)',  badge: '#3b82f6' },
+        best_value: { bg: 'rgba(212,167,106,0.08)',  border: 'rgba(212,167,106,0.25)', badge: '#d4a76a' }
+    };
     tripData.flights.slice(0, 3).forEach(f => {
+        const cat = flightCategoryColors[f.category] || flightCategoryColors.best_value;
+        const label = f.categoryLabel || (f.category === 'cheapest' ? '💸 Cheapest' : f.category === 'fastest' ? '⚡ Fastest' : '⭐ Best Value');
         let html = `
-        <div class="flight-card" style="display:flex;flex-direction:column;gap:16px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:12px;">
-                <span style="color:var(--gold);font-weight:600;font-family:var(--font-serif);font-size:22px;">${f.price} <small style="font-size:12px;color:rgba(255,255,255,0.4);font-family:var(--font-sans);">Round Trip</small></span>
+        <div class="flight-card" style="display:flex;flex-direction:column;gap:14px;background:${cat.bg};border-color:${cat.border};">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--glass-border);padding-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${cat.badge};background:rgba(255,255,255,0.05);border:1px solid ${cat.border};padding:3px 10px;border-radius:20px;">${label}</span>
+                <span style="color:var(--gold);font-weight:700;font-family:var(--font-serif);font-size:24px;">${f.price} <small style="font-size:12px;color:rgba(var(--white-rgb),0.4);font-family:var(--font-sans);font-weight:400;">Round Trip</small></span>
             </div>
             <div>
-                <div style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">✈ Outbound</div>
-                <div class="flight-airline" style="font-size:15px;">${f.airline} <span style="font-size:12px;color:gray;">(${f.code})</span></div>
-                <div class="flight-time" style="font-size:14px;">${f.outbound.time}</div>
-                <div class="flight-meta" style="margin-top:4px;"><span>${f.outbound.duration}</span> • <span class="flight-badge">${f.outbound.stops}</span></div>
+                <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">✈ Outbound</div>
+                <div class="flight-airline">${f.airline} <span style="font-size:11px;color:rgba(var(--white-rgb),0.4);">(${f.code})</span></div>
+                <div class="flight-time">${f.outbound?.time || '—'}</div>
+                <div class="flight-meta"><span>${f.outbound?.duration || ''}</span> <span class="flight-badge">${f.outbound?.stops || ''}</span></div>
             </div>`;
-        if(f.inbound) html += `
-            <div style="border-top:1px dashed rgba(255,255,255,0.1);padding-top:12px;">
-                <div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">✈ Return</div>
-                <div class="flight-airline" style="font-size:15px;">${f.airline}</div>
-                <div class="flight-time" style="font-size:14px;">${f.inbound.time}</div>
-                <div class="flight-meta" style="margin-top:4px;"><span>${f.inbound.duration}</span> • <span class="flight-badge">${f.inbound.stops}</span></div>
+        if (f.inbound) html += `
+            <div style="border-top:1px dashed var(--glass-border);padding-top:12px;">
+                <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">✈ Return</div>
+                <div class="flight-airline">${f.airline}</div>
+                <div class="flight-time">${f.inbound.time}</div>
+                <div class="flight-meta"><span>${f.inbound.duration}</span> <span class="flight-badge">${f.inbound.stops}</span></div>
             </div>`;
-        html += `<a href="${skyscannerLink}" target="_blank" style="margin-top:auto;padding-top:12px;" data-html2canvas-ignore><button class="btn-primary btn-sm" style="width:100%;justify-content:center;">Book Round Trip ✈️</button></a></div>`;
+        html += `<a href="${skyscannerLink}" target="_blank" style="margin-top:auto;padding-top:8px;" data-html2canvas-ignore><button class="btn-primary btn-sm" style="width:100%;justify-content:center;">Book on Skyscanner ✈️</button></a></div>`;
         fg.innerHTML += html;
     });
 }
 
-// ── HOTEL RENDER ──
+// ── HOTEL RENDER — 3 tiers: Budget / Mid-Range / Luxury ──
 if (showHotel && tripData?.hotels) {
     document.getElementById("hotelSection").style.display = "block";
     const hg = document.getElementById("hotelsGrid");
     const nights = Math.max(1, days - 1);
-    tripData.hotels.slice(0, 3).forEach((h, index) => {
-        const cardId = `hotel-img-${index}`;
+    const hotelCategoryStyles = {
+        budget:  { color: '#10b981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.25)'  },
+        mid:     { color: '#3b82f6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.25)'  },
+        luxury:  { color: '#d4a76a', bg: 'rgba(212,167,106,0.08)', border: 'rgba(212,167,106,0.3)'  }
+    };
+    tripData.hotels.slice(0, 3).forEach((h, idx) => {
+        const cardId = `hotel-img-${idx}`;
+        const cat   = hotelCategoryStyles[h.category] || hotelCategoryStyles.mid;
+        const label = h.categoryLabel || (h.category === 'budget' ? '🎒 Budget Stay' : h.category === 'luxury' ? '👑 Luxury' : '🏙️ Mid-Range');
+        const amenitiesHtml = (h.amenities || []).map(a =>
+            `<span style="font-size:10px;background:var(--glass);border:1px solid var(--glass-border);padding:2px 8px;border-radius:20px;color:rgba(var(--white-rgb),0.6);">${a}</span>`
+        ).join('');
         hg.innerHTML += `
-        <div class="hotel-card">
-            <div class="hotel-img" id="${cardId}" style="background-color:var(--dark3);background-size:cover;background-position:center;">
+        <div class="hotel-card" style="border-color:${cat.border};">
+            <div class="hotel-img" id="${cardId}" style="background-color:var(--dark3);background-size:cover;background-position:center;position:relative;">
                 <div class="hotel-badge">${h.rating}</div>
+                <span style="position:absolute;top:12px;left:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${cat.color};background:${cat.bg};border:1px solid ${cat.border};padding:3px 10px;border-radius:20px;">${label}</span>
             </div>
             <div class="hotel-info">
-                <div class="hotel-header"><h5 style="color:var(--white);font-size:18px;margin-bottom:8px;">${h.name}</h5></div>
-                <div class="hotel-desc">📍 ${h.address}</div>
-                <div class="hotel-price" style="margin-bottom:2px;">${h.price}</div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:12px;">Per night · ${nights} nights total</div>
+                <h5 style="color:var(--white);font-size:17px;margin-bottom:6px;line-height:1.3;">${h.name}</h5>
+                <div class="hotel-desc" style="margin-bottom:8px;">📍 ${h.address}</div>
+                ${amenitiesHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${amenitiesHtml}</div>` : ''}
+                <div class="hotel-price" style="color:${cat.color};margin-bottom:2px;">${h.price}</div>
+                <div style="font-size:11px;color:rgba(var(--white-rgb),0.4);margin-bottom:12px;">Per night · ${nights} nights est.</div>
                 <a href="${bookingLink}" target="_blank" data-html2canvas-ignore>
                     <button class="btn-outline btn-sm" style="width:100%;">View on Booking.com 🏨</button>
                 </a>
             </div>
         </div>`;
-        fetchRealImage(`${h.name} ${destination}`, h.name, 'hotel').then(imgUrl => {
+        fetchRealImage(`${h.name} ${destination} hotel`, h.name, 'hotel').then(imgUrl => {
             const node = document.getElementById(cardId);
-            if(node) node.style.backgroundImage = `url('${imgUrl}')`;
+            if (node) node.style.backgroundImage = `url('${imgUrl}')`;
         });
     });
 }
@@ -911,8 +1016,11 @@ async function renderItinerary() {
 
         card.innerHTML = `
             <div class="day-header-wrap">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                    <div class="day-number-badge">Day ${day.day}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="day-number-badge">Day ${day.day}</div>
+                        ${day.city ? `<span style="font-size:11px;color:rgba(var(--white-rgb),0.5);background:var(--glass);border:1px solid var(--glass-border);padding:3px 10px;border-radius:20px;">📍 ${day.city}</span>` : ''}
+                    </div>
                     ${day.theme ? `<span style="font-size:12px;color:var(--gold);background:rgba(212,167,106,0.08);border:1px solid rgba(212,167,106,0.2);padding:4px 12px;border-radius:20px;">${day.theme}</span>` : ''}
                 </div>
                 ${imagesGridHtml}
@@ -925,7 +1033,16 @@ async function renderItinerary() {
                     <div class="day-detail-item"><div class="dd-icon">💰</div><div><strong>Daily Cost</strong><p>${day.cost}</p></div></div>
                     ${day.note ? `<div class="day-detail-item"><div class="dd-icon">💡</div><div><strong>Pro Tip</strong><p>${day.note}</p></div></div>` : ''}
                 </div>
-                <div id="map${index}" class="map-box"></div>
+                <div class="map-wrapper">
+                    <div class="map-toolbar">
+                        <div class="map-route-label">🗺️ <span id="routeLabel${index}">Day ${day.day} Route</span></div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="map-distance-badge" id="mapDist${index}" style="display:none;"></span>
+                            <button class="btn-outline btn-sm map-maximize-btn" onclick="maximizeMap(${index})" title="Full Screen Map">⤢ Maximize</button>
+                        </div>
+                    </div>
+                    <div id="map${index}" class="map-box"></div>
+                </div>
                 <div>
                     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(var(--white-rgb),0.35);margin-bottom:6px;">📝 Your Notes for Day ${day.day}</div>
                     <textarea class="day-note-area" placeholder="Add your personal notes, reminders, or changes for this day..." onchange="saveDayNote(${index}, this.value)">${savedNote}</textarea>
@@ -934,24 +1051,74 @@ async function renderItinerary() {
         `;
         container.appendChild(card);
 
-        // MAP
+        // MAP — Hotel → Places → Hotel routing
         if (day.places.length > 0) {
             const isLight = document.documentElement.classList.contains('light-theme');
-            const map = new google.maps.Map(document.getElementById(`map${index}`), { zoom: 12, styles: isLight ? [] : mapDarkStyle, disableDefaultUI: true });
+            const mapEl = document.getElementById(`map${index}`);
+            const map = new google.maps.Map(mapEl, {
+                zoom: 12,
+                styles: isLight ? [] : mapDarkStyle,
+                disableDefaultUI: false,
+                zoomControl: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
+            });
+            // Store map data for maximize
             window.mapsArray.push(map);
-            if (day.places.length > 1) {
-                const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer({ map, suppressMarkers: false, polylineOptions: { strokeColor: '#d4a76a', strokeWeight: 4 } });
-                const waypoints = day.places.slice(1, -1).map(p => ({ location: p + ', ' + destination, stopover: true }));
-                directionsService.route({
-                    origin: day.places[0] + ', ' + destination,
-                    destination: day.places[day.places.length - 1] + ', ' + destination,
-                    waypoints, travelMode: google.maps.TravelMode.DRIVING
-                }, (response, status) => {
-                    if (status === 'OK') directionsRenderer.setDirections(response);
-                    else day.places.forEach(p => dropMarker(map, p));
-                });
-            } else dropMarker(map, day.places[0]);
+            window.mapsData = window.mapsData || [];
+            window.mapsData[index] = { day: day, mapInstance: map };
+
+            const hotelName = tripData?.hotels?.[0]?.name || (destination + ' City Center');
+            const hotelAddress = tripData?.hotels?.[0]?.address || destination;
+
+            const directionsService  = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer({
+                map,
+                suppressMarkers: false,
+                polylineOptions: { strokeColor: '#d4a76a', strokeWeight: 4, strokeOpacity: 0.9 }
+            });
+
+            // Build full route: Hotel → Place1 → Place2 → ... → Hotel
+            const allStops = [hotelAddress + ', ' + destination, ...day.places.map(p => p + ', ' + destination), hotelAddress + ', ' + destination];
+            const routeOrigin = allStops[0];
+            const routeDest   = allStops[allStops.length - 1];
+            const routeWaypoints = allStops.slice(1, -1).map(loc => ({ location: loc, stopover: true }));
+
+            directionsService.route({
+                origin: routeOrigin,
+                destination: routeDest,
+                waypoints: routeWaypoints,
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: false
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                    // Calculate total distance & time
+                    let totalDist = 0, totalTime = 0;
+                    response.routes[0].legs.forEach(leg => {
+                        totalDist += leg.distance?.value || 0;
+                        totalTime += leg.duration?.value || 0;
+                    });
+                    const distKm   = (totalDist / 1000).toFixed(1);
+                    const timeMins = Math.round(totalTime / 60);
+                    const distBadge = document.getElementById(`mapDist${index}`);
+                    if (distBadge) {
+                        distBadge.style.display = 'inline-flex';
+                        distBadge.textContent = `🛣️ ${distKm} km · ⏱ ${timeMins} min`;
+                    }
+                    const routeLabel = document.getElementById(`routeLabel${index}`);
+                    if (routeLabel) {
+                        const stops = [hotelName.split(' ')[0], ...day.places, '↩ Hotel'];
+                        routeLabel.textContent = stops.join(' → ');
+                    }
+                    // Store for maximize
+                    if (window.mapsData[index]) window.mapsData[index].directionsResponse = response;
+                } else {
+                    // Fallback: drop individual markers
+                    day.places.forEach(p => dropMarker(map, p));
+                }
+            });
         }
 
         // IMAGES
@@ -1326,6 +1493,86 @@ async function fetchRealImage(query, fallbackText, type = 'place') {
     } catch(e) {}
     return `https://placehold.co/800x600/1a2235/d4a76a?text=${encodeURIComponent(fallbackText)}`;
 }
+
+// ── MAP MAXIMIZE / FULLSCREEN ──
+window.mapsData = window.mapsData || [];
+let fullscreenMapInstance = null;
+let fullscreenDirRenderer = null;
+
+window.maximizeMap = function(index) {
+    const data = window.mapsData[index];
+    if (!data) return;
+    const modal = document.getElementById('mapFullscreenModal');
+    const modalMapEl = document.getElementById('mapModalMap');
+    const titleEl = document.getElementById('mapModalTitle');
+    const metaEl  = document.getElementById('mapModalMeta');
+
+    const day = data.day;
+    titleEl.textContent = `Day ${day.day} — ${day.theme || 'Route'}`;
+
+    // Build route label
+    const hotelName = tripData?.hotels?.[0]?.name || destination;
+    const stops = [hotelName, ...day.places, '↩ ' + hotelName.split(' ')[0]];
+    metaEl.textContent = stops.join(' → ');
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Give DOM time to paint the modal before initializing map
+    setTimeout(() => {
+        const isLight = document.documentElement.classList.contains('light-theme');
+        fullscreenMapInstance = new google.maps.Map(modalMapEl, {
+            zoom: 12,
+            styles: isLight ? [] : mapDarkStyle,
+            disableDefaultUI: false,
+            zoomControl: true,
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: false
+        });
+
+        if (data.directionsResponse) {
+            fullscreenDirRenderer = new google.maps.DirectionsRenderer({
+                map: fullscreenMapInstance,
+                polylineOptions: { strokeColor: '#d4a76a', strokeWeight: 5, strokeOpacity: 0.95 }
+            });
+            fullscreenDirRenderer.setDirections(data.directionsResponse);
+        } else {
+            day.places.forEach(p => dropMarker(fullscreenMapInstance, p));
+        }
+    }, 120);
+};
+
+window.closeMapModal = function() {
+    const modal = document.getElementById('mapFullscreenModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    if (fullscreenMapInstance) { fullscreenMapInstance = null; }
+    if (fullscreenDirRenderer) { fullscreenDirRenderer.setMap(null); fullscreenDirRenderer = null; }
+};
+
+// Close modal on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') window.closeMapModal(); });
+
+// ── USAGE LIMIT CHECK (show popup if limit hit) ──
+window.checkUsageLimit = async function() {
+    const today = new Date().toISOString().split('T')[0];
+    if (currentUser) {
+        // Logged-in: Firestore-based (handled in form.html before generation)
+        return true;
+    }
+    // Anonymous: localStorage
+    const storedDate  = localStorage.getItem('usage_date');
+    const storedCount = parseInt(localStorage.getItem('usage_count') || '0');
+    if (storedDate === today && storedCount >= 2) {
+        const popup = document.getElementById('usageLimitPopup');
+        document.getElementById('usageLimitMsg').textContent =
+            `You've used ${storedCount}/2 free itineraries today. Sign in to get 10/day, or upgrade for unlimited access.`;
+        popup.style.display = 'flex';
+        return false;
+    }
+    return true;
+};
 
 // ── INIT ──
 loadWeather();
